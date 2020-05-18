@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <AssemblyName>System.Net.Json</AssemblyName>
+    <RootNamespace>System.Net.Json</RootNamespace>
+    <ApplicationIcon />
+    <StartupObject />
+    <AssemblyVersion>2.5.6.0</AssemblyVersion>
+    <TargetFrameworks>netstandard2.0;net452</TargetFrameworks>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <FileVersion>2.5.6.0</FileVersion>
+    <Version>2.5.6</Version>
+    <Company>System.Net.Json</Company>
+    <PackageId>SystemNetJson</PackageId>
+    <PackageProjectUrl>https://github.com/cloudfy/System.Net.Json</PackageProjectUrl>
+    <Copyright>Cloudfy</Copyright>
+    <Description>Provides a JSON client to easily wrap requests over HTTP by serialization. This package also include a JsonApiClient for abstractions when implementing JsonAPIs on client based tiers.
+
+Support for GET; POST; UPDATE; PATCH using Newtonsoft Json serialization.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="packages\**" />
+    <EmbeddedResource Remove="packages\**" />
+    <None Remove="packages\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
+  </ItemGroup>
+
+</Project>
