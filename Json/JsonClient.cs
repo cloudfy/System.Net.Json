@@ -7,6 +7,7 @@ using System.Net;
 using System.Collections.Specialized;
 using Newtonsoft.Json;
 using System.IO;
+using Newtonsoft.Json.Serialization;
 
 namespace System.Net.Json
 {
@@ -366,7 +367,10 @@ namespace System.Net.Json
         /// <returns></returns>
         private static JsonSerializerSettings GetJsonSerializerSettings()
         {
-            return new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore };
+            return new JsonSerializerSettings { 
+                NullValueHandling = NullValueHandling.Ignore
+                
+            };
         }
         #endregion
     }
