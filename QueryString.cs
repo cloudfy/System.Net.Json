@@ -68,7 +68,8 @@ namespace System.Net
 
                 query += key + "=" + Parts[key];
             }
-            return prefix + query;
+            
+            return (prefix + query);
         }
 
         /// <summary>
