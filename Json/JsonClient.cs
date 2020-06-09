@@ -247,17 +247,26 @@ namespace System.Net.Json
         /// <param name="url"></param>
         /// <param name="request"></param>
         /// <param name="headers"></param>
+        /// <typeparam name="TRequest"></typeparam>
+        /// <typeparam name="TResponse"></typeparam>
         /// <returns>TResponse</returns>
         private static TResponse ExecuteRequest<TRequest, TResponse>(string method, string url, TRequest request, StringDictionary headers)
         {
-            string requestBody = Newtonsoft.Json.JsonConvert.SerializeObject(request,
-                Newtonsoft.Json.Formatting.None,
-                GetJsonSerializerSettings()
-            );
+            try
+            {
+                string requestBody = Newtonsoft.Json.JsonConvert.SerializeObject(request,
+                    Newtonsoft.Json.Formatting.None,
+                    GetJsonSerializerSettings()
+                );
 
-            string responseBody = ExecuteRequest(method, url, requestBody, headers);
+                string responseBody = ExecuteRequest(method, url, requestBody, headers);
 
-            return Newtonsoft.Json.JsonConvert.DeserializeObject<TResponse>(responseBody, GetJsonSerializerSettings());
+                return Newtonsoft.Json.JsonConvert.DeserializeObject<TResponse>(responseBody, GetJsonSerializerSettings());
+            }
+            catch (Exception e)
+            {
+                throw e;
+            }
         }
 
         /// <summary>
@@ -269,6 +278,8 @@ namespace System.Net.Json
         /// <param name="headers"></param>
         /// <param name="onRequestDelete"></param>
         /// <returns></returns>
+        /// <exception cref="WebException"></exception>
+        /// <exception cref="Exception"></exception>
         private static string ExecuteRequest(string method, string url, string body, StringDictionary headers, Action<WebRequest> onRequestDelete)
         {
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
@@ -326,8 +337,7 @@ namespace System.Net.Json
             catch (WebException e)
             {
                 var text = ReadResponse(e.Response.GetResponseStream());
-                throw new JsonClientException(text, (e.Response as HttpWebResponse).StatusCode);
-                //throw new ApplicationException(string.Format("Bad response {0}. {1}", e.Status, text), e);
+                throw new JsonClientException(text, (e.Response as HttpWebResponse).StatusCode, e);
             }
             catch (Exception e)
             {

@@ -26,6 +26,16 @@ namespace System.Net.Json
         {
             _statusCode = statusCode;
         }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="message"></param>
+        /// <param name="statusCode"></param>
+        /// <param name="innerException"></param>
+        public JsonClientException(string message, System.Net.HttpStatusCode statusCode, Exception innerException) : base(message, innerException)
+        {
+            _statusCode = statusCode;
+        }
         #endregion
 
         #region === public properties ===

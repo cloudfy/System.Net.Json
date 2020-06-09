@@ -6,11 +6,11 @@
     <RootNamespace>System.Net.Json</RootNamespace>
     <ApplicationIcon />
     <StartupObject />
-    <AssemblyVersion>2.6.1.0</AssemblyVersion>
+    <AssemblyVersion>2.6.10.0</AssemblyVersion>
     <TargetFrameworks>netstandard2.0;net452</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <FileVersion>2.6.1.0</FileVersion>
-    <Version>2.6.1</Version>
+    <FileVersion>2.6.10.0</FileVersion>
+    <Version>2.6.10</Version>
     <Company>System.Net.Json</Company>
     <PackageId>SystemNetJson</PackageId>
     <PackageProjectUrl>https://github.com/cloudfy/System.Net.Json</PackageProjectUrl>
@@ -24,6 +24,11 @@ Support for GET; POST; UPDATE; PATCH using Newtonsoft Json serialization.</Descr
     <Compile Remove="packages\**" />
     <EmbeddedResource Remove="packages\**" />
     <None Remove="packages\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove=".gitattributes" />
+    <None Remove=".gitignore" />
   </ItemGroup>
 
   <ItemGroup>

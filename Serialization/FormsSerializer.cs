@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Text;
 
 namespace System.Net.Serialization
@@ -21,7 +22,16 @@ namespace System.Net.Serialization
                     sb.Append("&");
 
                 var value = prop.GetValue(request);
-                if (value != null && !string.IsNullOrEmpty(value.ToString()))
+                if (value != null && value.GetType() == typeof(StringDictionary))
+                {
+                    // should format 'propertyname[keyname]=value'
+                    StringDictionary values = value as StringDictionary;
+                    foreach (string key in values.Keys)
+                    {
+                        sb.Append($"{prop.Name.ToLower()}[{key}]={values[key]}");
+                    }
+                }
+                else if (value != null && !string.IsNullOrEmpty(value.ToString()))
                 {
                     sb.Append($"{prop.Name.ToLower()}={value}");
                 }

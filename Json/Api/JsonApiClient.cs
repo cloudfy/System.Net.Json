@@ -74,7 +74,7 @@ namespace System.Net.Json.Api
                 if (HandleException(e))
                     throw e;
 
-                return default;
+                throw e;
             }
         }
         /// <summary>
