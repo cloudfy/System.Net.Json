@@ -85,7 +85,7 @@ namespace System.Net.Json
         /// <param name="request">Value of the request.</param>
         /// <param name="headers">HTTP headers of the request.</param>
         /// <returns>TResponse</returns>
-        public static void Put<TRequest>(string url, TRequest request, StringDictionary headers)
+        public static void Put<TRequest>(string url, TRequest request, StringDictionary headers) where TRequest : class
         {
             string requestBody = Newtonsoft.Json.JsonConvert.SerializeObject(request);
             ExecuteRequest("PUT", url, requestBody, headers);
@@ -96,7 +96,8 @@ namespace System.Net.Json
         /// <param name="request">Request of the method.</param>
         /// <param name="headers">HTTP headers of the request.</param>
         /// <returns>TResponse</returns>
-        public static TResponse Put<TRequest, TResponse>(string url, TRequest request, StringDictionary headers)
+        public static TResponse Put<TRequest, TResponse>(string url
+            , TRequest request, StringDictionary headers) where TResponse : class where TRequest : class
         {
             return ExecuteRequest<TRequest, TResponse>("PUT", url, request, headers);
         }
@@ -122,6 +123,10 @@ namespace System.Net.Json
         public static TResponse Post<TResponse>(string url, string requestBody, StringDictionary headers, Action<WebRequest> onRequestDelegate = null)
         {
             string responseBody = ExecuteRequest("POST", url, requestBody, headers, onRequestDelegate);
+
+            if (string.IsNullOrEmpty(responseBody))
+                throw new ArgumentNullException("Response is empty, cannot deserialize. Request may have succeeded. Consider using PostNoResponse.");
+
             return JsonConvert.DeserializeObject<TResponse>(responseBody, GetJsonSerializerSettings());
         }
         /// <summary>
@@ -135,6 +140,7 @@ namespace System.Net.Json
         public static void Post<TRequest>(string url, TRequest request, StringDictionary headers, Action<WebRequest> onRequestDelegate = null)
         {
             string requestBody = Newtonsoft.Json.JsonConvert.SerializeObject(request);
+
             ExecuteRequest("POST", url, requestBody, headers, onRequestDelegate);
         }
         /// <summary>
@@ -158,7 +164,12 @@ namespace System.Net.Json
         /// <param name="headers">HTTP headers of the request.</param>
         /// <param name="onRequestDelegate">Delegate to forward to the request.</param>
         /// <returns>TResponse</returns>
-        public static TResponse Post<TRequest, TResponse>(string url, TRequest request, StringDictionary headers, Action<WebRequest> onRequestDelegate = null)
+        public static TResponse Post<TRequest, TResponse>(string url
+            , TRequest request
+            , StringDictionary headers
+            , Action<WebRequest> onRequestDelegate = null)
+            where TRequest : class
+            where TResponse : class
         {
             return ExecuteRequest<TRequest, TResponse>("POST", url, request, headers);
         }
@@ -183,7 +194,7 @@ namespace System.Net.Json
         /// <param name="url"></param>
         /// <param name="headers"></param>
         /// <returns>TResponse</returns>
-        public static TResponse Get<TResponse>(string url, StringDictionary headers)
+        public static TResponse Get<TResponse>(string url, StringDictionary headers) where TResponse : class
         {
             return ExecuteRequest<Object, TResponse>("GET", url, null, headers);
         }
@@ -250,7 +261,9 @@ namespace System.Net.Json
         /// <typeparam name="TRequest"></typeparam>
         /// <typeparam name="TResponse"></typeparam>
         /// <returns>TResponse</returns>
-        private static TResponse ExecuteRequest<TRequest, TResponse>(string method, string url, TRequest request, StringDictionary headers)
+        private static TResponse ExecuteRequest<TRequest, TResponse>(string method
+            , string url
+            , TRequest request, StringDictionary headers) where TRequest : class where TResponse : class
         {
             try
             {
@@ -260,8 +273,10 @@ namespace System.Net.Json
                 );
 
                 string responseBody = ExecuteRequest(method, url, requestBody, headers);
+                if (string.IsNullOrEmpty(responseBody))
+                    return null;
 
-                return Newtonsoft.Json.JsonConvert.DeserializeObject<TResponse>(responseBody, GetJsonSerializerSettings());
+                return JsonConvert.DeserializeObject<TResponse>(responseBody, GetJsonSerializerSettings());
             }
             catch (Exception e)
             {

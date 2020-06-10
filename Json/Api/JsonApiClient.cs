@@ -19,7 +19,7 @@ namespace System.Net.Json.Api
         /// <typeparam name="T"></typeparam>
         /// <param name="url">Url of action request.</param>
         /// <returns></returns>
-        protected virtual T Get<T>(string url)
+        protected virtual T Get<T>(string url) where T : class
         {
             try
             {
@@ -30,7 +30,7 @@ namespace System.Net.Json.Api
                 if (HandleException(e))
                     throw e;
 
-                return default;
+                return null;
             }
         }
 
@@ -40,7 +40,7 @@ namespace System.Net.Json.Api
         /// <typeparam name="T"></typeparam>
         /// <param name="url"></param>
         /// <returns></returns>
-        protected virtual async Task<T> GetAsync<T>(string url)
+        protected virtual async Task<T> GetAsync<T>(string url) where T : class
         {
             try
             {
@@ -51,7 +51,7 @@ namespace System.Net.Json.Api
                 if (HandleException(e))
                     throw e;
 
-                return default;
+                return null;
             }
         }
 
@@ -63,7 +63,7 @@ namespace System.Net.Json.Api
         /// <param name="url">Url of action request.</param>
         /// <param name="value">Value.</param>
         /// <returns></returns>
-        protected virtual R Post<T, R>(string url, T value)
+        protected virtual R Post<T, R>(string url, T value) where R : class where T : class
         {
             try
             {
@@ -74,7 +74,7 @@ namespace System.Net.Json.Api
                 if (HandleException(e))
                     throw e;
 
-                throw e;
+                return null;
             }
         }
         /// <summary>
