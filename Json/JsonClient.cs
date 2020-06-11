@@ -152,7 +152,8 @@ namespace System.Net.Json
         /// <param name="headers">HTTP headers of the request.</param>
         /// <param name="onRequestDelegate">Delegate to forward to the request.</param>
         [Obsolete("PostNoResponse is obsolete, use Post.")]
-        public static void PostNoResponse<TRequest>(string url, TRequest request, StringDictionary headers, Action<WebRequest> onRequestDelegate = null)
+        public static void PostNoResponse<TRequest>(string url, TRequest request
+            , StringDictionary headers, Action<WebRequest> onRequestDelegate = null)
         {
             Post<TRequest>(url, request, headers, onRequestDelegate);
         }
@@ -168,8 +169,6 @@ namespace System.Net.Json
             , TRequest request
             , StringDictionary headers
             , Action<WebRequest> onRequestDelegate = null)
-            where TRequest : class
-            where TResponse : class
         {
             return ExecuteRequest<TRequest, TResponse>("POST", url, request, headers);
         }
@@ -183,7 +182,8 @@ namespace System.Net.Json
         /// <param name="request">Body of the request.</param>
         /// <param name="headers">HTTP headers of the request.</param>
         /// <returns></returns>
-        public static async Task<TResponse> PostAsync<TRequest, TResponse>(string url, TRequest request, StringDictionary headers)
+        public static async Task<TResponse> PostAsync<TRequest, TResponse>(string url
+            , TRequest request, StringDictionary headers)
         {
             return await ExecuteRequestAsync<TRequest, TResponse>("POST", url, request, headers);
         }
@@ -194,7 +194,7 @@ namespace System.Net.Json
         /// <param name="url"></param>
         /// <param name="headers"></param>
         /// <returns>TResponse</returns>
-        public static TResponse Get<TResponse>(string url, StringDictionary headers) where TResponse : class
+        public static TResponse Get<TResponse>(string url, StringDictionary headers) 
         {
             return ExecuteRequest<Object, TResponse>("GET", url, null, headers);
         }
@@ -263,18 +263,18 @@ namespace System.Net.Json
         /// <returns>TResponse</returns>
         private static TResponse ExecuteRequest<TRequest, TResponse>(string method
             , string url
-            , TRequest request, StringDictionary headers) where TRequest : class where TResponse : class
+            , TRequest request, StringDictionary headers)
         {
             try
             {
-                string requestBody = Newtonsoft.Json.JsonConvert.SerializeObject(request,
-                    Newtonsoft.Json.Formatting.None,
+                string requestBody = JsonConvert.SerializeObject(request,
+                    Formatting.None,
                     GetJsonSerializerSettings()
                 );
 
                 string responseBody = ExecuteRequest(method, url, requestBody, headers);
                 if (string.IsNullOrEmpty(responseBody))
-                    return null;
+                    return default(TResponse);
 
                 return JsonConvert.DeserializeObject<TResponse>(responseBody, GetJsonSerializerSettings());
             }
@@ -295,7 +295,8 @@ namespace System.Net.Json
         /// <returns></returns>
         /// <exception cref="WebException"></exception>
         /// <exception cref="Exception"></exception>
-        private static string ExecuteRequest(string method, string url, string body, StringDictionary headers, Action<WebRequest> onRequestDelete)
+        private static string ExecuteRequest(string method, string url
+            , string body, StringDictionary headers, Action<WebRequest> onRequestDelete)
         {
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
             request.Method = method.ToUpper();
@@ -318,22 +319,22 @@ namespace System.Net.Json
                 }
             }
             onRequestDelete?.Invoke(request);
-
-            if (request.Method == "POST" | request.Method == "PUT" | request.Method == "PATCH")
-            {
-                // write body as UTF-8 encoding
-                UTF8Encoding encoding = new UTF8Encoding();
-                byte[] bytes = encoding.GetBytes(body);
-
-                // set content length
-                request.ContentLength = bytes.Length;
-
-                using (Stream requestStream = request.GetRequestStream())
-                    requestStream.Write(bytes, 0, bytes.Length);
-            }
-
+            
             try
             {
+                if (request.Method == "POST" | request.Method == "PUT" | request.Method == "PATCH")
+                {
+                    // write body as UTF-8 encoding
+                    UTF8Encoding encoding = new UTF8Encoding();
+                    byte[] bytes = encoding.GetBytes(body);
+
+                    // set content length
+                    request.ContentLength = bytes.Length;
+
+                    using (Stream requestStream = request.GetRequestStream())
+                        requestStream.Write(bytes, 0, bytes.Length);
+                }
+
                 using (var response = (HttpWebResponse)request.GetResponse())
                 {
                     if (response.StatusCode == HttpStatusCode.OK |
@@ -351,8 +352,16 @@ namespace System.Net.Json
             }
             catch (WebException e)
             {
-                var text = ReadResponse(e.Response.GetResponseStream());
-                throw new JsonClientException(text, (e.Response as HttpWebResponse).StatusCode, e);
+                if (e.Status == WebExceptionStatus.ConnectFailure ||
+                    e.Status == WebExceptionStatus.ConnectionClosed ||
+                    e.Status == WebExceptionStatus.Timeout)
+                    throw e;
+
+                if (e.Status == WebExceptionStatus.ProtocolError) { 
+                    var text = ReadResponse(e.Response.GetResponseStream());
+                    throw new JsonClientException(text, (e.Response as HttpWebResponse).StatusCode, e);
+                }
+                throw e;
             }
             catch (Exception e)
             {
@@ -394,7 +403,6 @@ namespace System.Net.Json
         {
             return new JsonSerializerSettings { 
                 NullValueHandling = NullValueHandling.Ignore
-                
             };
         }
         #endregion
