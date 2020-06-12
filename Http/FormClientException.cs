@@ -12,6 +12,7 @@ namespace System.Net.Http
         #region === member variables ===
         /// <summary>Member variable for status code.</summary>
         private System.Net.HttpStatusCode _statusCode;
+        private string _statusDescription;
         #endregion
 
         #region === constructor ===
@@ -24,7 +25,20 @@ namespace System.Net.Http
             , System.Net.HttpStatusCode statusCode) : base(message)
         {
             _statusCode = statusCode;
-        } 
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="message"></param>
+        /// <param name="statusCode"></param>
+        /// <param name="statusDescription"></param>
+        public FormClientException(string message
+            , System.Net.HttpStatusCode statusCode
+            , string statusDescription) : base(message)
+        {
+            _statusCode = statusCode;
+            _statusDescription = statusDescription;
+        }
         #endregion
 
         #region === public properties ===
@@ -36,6 +50,16 @@ namespace System.Net.Http
             get
             {
                 return _statusCode;
+            }
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        public string StatusDescription
+        {
+            get
+            {
+                return _statusDescription;
             }
         }
         #endregion

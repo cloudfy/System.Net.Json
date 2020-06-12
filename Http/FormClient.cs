@@ -129,21 +129,21 @@ namespace System.Net.Http
                 }
             }
 
-            if (!string.IsNullOrEmpty(body) && (request.Method == "POST" | request.Method == "PUT" | request.Method == "PATCH"))
-            {
-                // write body as UTF-8 encoding
-                UTF8Encoding encoding = new UTF8Encoding();
-                byte[] bytes = encoding.GetBytes(body);
-
-                // set content length
-                request.ContentLength = bytes.Length;
-
-                using (Stream requestStream = request.GetRequestStream())
-                    requestStream.Write(bytes, 0, bytes.Length);
-            }
-
             try
             {
+                if (!string.IsNullOrEmpty(body) && (request.Method == "POST" | request.Method == "PUT" | request.Method == "PATCH"))
+                {
+                    // write body as UTF-8 encoding
+                    UTF8Encoding encoding = new UTF8Encoding();
+                    byte[] bytes = encoding.GetBytes(body);
+
+                    // set content length
+                    request.ContentLength = bytes.Length;
+
+                    using (Stream requestStream = request.GetRequestStream())
+                        requestStream.Write(bytes, 0, bytes.Length);
+                }
+
                 using (var response = (HttpWebResponse)request.GetResponse())
                 {
                     if (response.StatusCode == HttpStatusCode.OK |
@@ -161,8 +161,19 @@ namespace System.Net.Http
             }
             catch (WebException e)
             {
-                var text = ReadResponse(e.Response.GetResponseStream());
-                throw new FormClientException(text, (e.Response as HttpWebResponse).StatusCode);
+                if (e.Status == WebExceptionStatus.ConnectFailure ||
+                    e.Status == WebExceptionStatus.ConnectionClosed ||
+                    e.Status == WebExceptionStatus.Timeout)
+                    throw e;
+
+                if (e.Status == WebExceptionStatus.ProtocolError)
+                {
+                    var text = ReadResponse(e.Response.GetResponseStream());
+                    throw new FormClientException(text
+                        , (e.Response as HttpWebResponse).StatusCode
+                        , (e.Response as HttpWebResponse).StatusDescription);
+                }
+                throw e;
             }
             catch (Exception e)
             {
