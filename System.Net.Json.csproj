@@ -1,18 +1,18 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <IncludeSymbols>true</IncludeSymbols>
-    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <!-- SymbolPackageFormat>snupkg</SymbolPackageFormat -->
     <OutputType>Library</OutputType>
     <AssemblyName>System.Net.Json</AssemblyName>
     <RootNamespace>System.Net.Json</RootNamespace>
     <ApplicationIcon />
     <StartupObject />
-    <AssemblyVersion>2.6.50.0</AssemblyVersion>
+    <AssemblyVersion>2.7.5.10</AssemblyVersion>
     <TargetFrameworks>netstandard2.0;net452</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <FileVersion>2.6.50.0</FileVersion>
-    <Version>2.6.50</Version>
+    <FileVersion>2.7.5.10</FileVersion>
+    <Version>2.7.5.10</Version>
     <Company>System.Net.Json</Company>
     <PackageId>SystemNetJson</PackageId>
     <PackageProjectUrl>https://github.com/cloudfy/System.Net.Json</PackageProjectUrl>
@@ -37,4 +37,11 @@ Support for GET; POST; UPDATE; PATCH using Newtonsoft Json serialization.</Descr
     <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
   </ItemGroup>
 
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'net452'">
+    <DefineConstants>NETFW</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard2.0'">
+    <DefineConstants>NETCORE</DefineConstants>
+  </PropertyGroup>
+  
 </Project>

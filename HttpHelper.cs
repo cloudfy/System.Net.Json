@@ -57,5 +57,39 @@ namespace System.Net
                 { "content-type", "application/x-www-form-urlencoded" }
             };
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        internal static string UrlEncode(string value)
+        {
+            if (string.IsNullOrEmpty(value))
+                return value;
+
+#if NETFW
+            return System.Net.WebUtility.UrlEncode(value);
+#else
+            return System.Web.HttpUtility.UrlEncode(value);
+#endif
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        internal static string UrlDecode(string value)
+        {
+            if (string.IsNullOrEmpty(value))
+                return value;
+
+#if NETFW
+            return System.Net.WebUtility.UrlDecode(value);
+#else
+            return System.Web.HttpUtility.UrlDecode(value);
+#endif
+        }
     }
 }

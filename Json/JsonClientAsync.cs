@@ -50,6 +50,21 @@ namespace System.Net.Json
         }
         #endregion
 
+        #region === PUT ===
+        /// <summary>
+        /// </summary>
+        /// <typeparam name="TRequest"></typeparam>
+        /// <typeparam name="TResponse"></typeparam>
+        /// <param name="url"></param>
+        /// <param name="request"></param>
+        /// <param name="headers"></param>
+        public static async Task<TResponse> PutAsync<TRequest, TResponse>(string url
+            , TRequest request, StringDictionary headers)
+        {
+            return await ExecuteRequestAsync<TRequest, TResponse>("PUT", url, request, headers);
+        }
+        #endregion
+
         #region === private methods ===
         /// <summary>
         /// 
@@ -94,10 +109,13 @@ namespace System.Net.Json
                 {
                     if (key.ToLower() == "content-type")
                         request.ContentType = headers[key];
+                    else if (key.ToLower() == "user-agent")
+                        request.UserAgent = headers[key];
                     else if (key.ToLower() == "accept")
                         request.Accept = headers[key];
-                    //else if (key.ToLower() == "content-length")
-                    //request.ContentLength = headers[key];
+                    else if (key.ToLower() == "content-length")
+                        // nothing
+                        continue;
                     else
                         request.Headers.Add(key, headers[key]);
                 }

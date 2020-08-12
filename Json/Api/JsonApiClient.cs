@@ -118,6 +118,50 @@ namespace System.Net.Json.Api
                     throw e;
             }
         }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="R"></typeparam>
+        /// <param name="url"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        protected virtual R Put<T, R>(string url, T value) where R : class where T : class
+        {
+            try
+            {
+                return JsonClient.Put<T, R>(url, value, this.GetHeaders());
+            }
+            catch (Exception e)
+            {
+                if (HandleException(e))
+                    throw e;
+
+                return null;
+            }
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="R"></typeparam>
+        /// <param name="url"></param>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        protected virtual async Task<R> PutAsync<T, R>(string url, T request)
+        {
+            try
+            {
+                return await JsonClient.PutAsync<T, R>(url, request, this.GetHeaders());
+            }
+            catch (Exception e)
+            {
+                if (HandleException(e))
+                    throw e;
+
+                return default;
+            }
+        }
         #endregion
 
         /// <summary>
@@ -131,8 +175,19 @@ namespace System.Net.Json.Api
         /// </summary>
         /// <param name="e">Exception to handle.</param>
         /// <returns>True to throw exception in implementation.</returns>
-        protected virtual bool HandleException(Exception e)
+        protected internal virtual bool HandleException(Exception e)
         {
+            return true;
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="ex"></param>
+        /// <param name="e"></param>
+        /// <returns></returns>
+        protected internal virtual bool TryHandleException(Exception ex, out Exception e)
+        {
+            e = ex;
             return true;
         }
 

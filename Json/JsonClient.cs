@@ -302,6 +302,7 @@ namespace System.Net.Json
             request.Method = method.ToUpper();
             request.AllowAutoRedirect = true;
             request.Timeout = 50000;
+            request.KeepAlive = true;
  
             if (headers != null)
             {
@@ -309,6 +310,8 @@ namespace System.Net.Json
                 {
                     if (key.ToLower() == "content-type")
                         request.ContentType = headers[key];
+                    else if (key.ToLower() == "user-agent")
+                        request.UserAgent = headers[key];
                     else if (key.ToLower() == "accept")
                         request.Accept = headers[key];
                     else if (key.ToLower() == "content-length")

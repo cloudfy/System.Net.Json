@@ -18,7 +18,7 @@
             if (!baseUrl.ToLower().StartsWith("http"))
                 throw new ArgumentException("Base Url must begin with http or https");
 
-            // combine
+            // remove trailing / on base path
             if (baseUrl.EndsWith("/"))
                 baseUrl = baseUrl.Substring(0, baseUrl.Length - 1);
             if (paths == null)
@@ -28,6 +28,8 @@
             {
                 if (!path.StartsWith("/"))
                     baseUrl += "/" + path;
+                else if (path.EndsWith("/") && path.Length > 1)
+                    baseUrl += path.Substring(0, path.Length - 1);
                 else
                     baseUrl += path;
             }
