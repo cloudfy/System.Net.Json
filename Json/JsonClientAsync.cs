@@ -23,7 +23,35 @@ namespace System.Net.Json
         }
         #endregion
 
-        #region === POST ===
+        #region === POST Async ===
+        /// <summary>Provides a serialized POST method for an API.</summary>
+        /// <typeparam name="TRequest"></typeparam>
+        /// <typeparam name="TResponse"></typeparam>
+        /// <param name="url">Url of the request.</param>
+        /// <param name="request">Body of the request.</param>
+        /// <param name="headers">HTTP headers of the request.</param>
+        /// <returns></returns>
+        public static async Task<TResponse> PostAsync<TRequest, TResponse>(string url
+            , TRequest request, StringDictionary headers)
+        {
+            return await ExecuteRequestAsync<TRequest, TResponse>("POST", url, request, headers);
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TRequest"></typeparam>
+        /// <typeparam name="TResponse"></typeparam>
+        /// <param name="url"></param>
+        /// <param name="request"></param>
+        /// <param name="headers"></param>
+        /// <param name="jsonSerializerSettings"></param>
+        /// <returns></returns>
+        public static async Task<TResponse> PostAsync<TRequest, TResponse>(string url
+            , TRequest request, StringDictionary headers, Newtonsoft.Json.JsonSerializerSettings jsonSerializerSettings)
+        {
+            return await ExecuteRequestAsync<TRequest, TResponse>("POST", url, request, headers, jsonSerializerSettings);
+        }
+
         /// <summary>
         /// </summary>
         /// <typeparam name="TRequest"></typeparam>
@@ -75,12 +103,18 @@ namespace System.Net.Json
         /// <param name="url"></param>
         /// <param name="request"></param>
         /// <param name="headers"></param>
+        /// <param name="jsonSerializerSettings"></param>
         /// <returns></returns>
-        private async static Task<TResponse> ExecuteRequestAsync<TRequest, TResponse>(string method, string url, TRequest request, StringDictionary headers)
+        private async static Task<TResponse> ExecuteRequestAsync<TRequest, TResponse>(
+            string method
+            , string url
+            , TRequest request
+            , StringDictionary headers
+            , Newtonsoft.Json.JsonSerializerSettings jsonSerializerSettings = null)
         {
             string requestBody = Newtonsoft.Json.JsonConvert.SerializeObject(request,
                 Newtonsoft.Json.Formatting.None,
-                GetJsonSerializerSettings()
+                jsonSerializerSettings ?? GetJsonSerializerSettings()
             );
 
             string responseBody = await ExecuteRequestAsync(method, url, requestBody, headers);

@@ -95,11 +95,14 @@ namespace System.Net.Json
         /// <param name="url">Url of the request.</param>
         /// <param name="request">Request of the method.</param>
         /// <param name="headers">HTTP headers of the request.</param>
+        /// <param name="jsonSerializerSettings"></param>
         /// <returns>TResponse</returns>
         public static TResponse Put<TRequest, TResponse>(string url
-            , TRequest request, StringDictionary headers) where TResponse : class where TRequest : class
+            , TRequest request, StringDictionary headers
+            , Newtonsoft.Json.JsonSerializerSettings jsonSerializerSettings = null) 
+            where TResponse : class where TRequest : class
         {
-            return ExecuteRequest<TRequest, TResponse>("PUT", url, request, headers);
+            return ExecuteRequest<TRequest, TResponse>("PUT", url, request, headers, jsonSerializerSettings);
         }
         #endregion
 
@@ -137,9 +140,13 @@ namespace System.Net.Json
         /// <param name="request">Body of the request.</param>
         /// <param name="headers">HTTP headers of the request.</param>
         /// <param name="onRequestDelegate">Delegate to forward to the request.</param>
-        public static void Post<TRequest>(string url, TRequest request, StringDictionary headers, Action<WebRequest> onRequestDelegate = null)
+        /// <param name="jsonSerializerSettings"></param>
+        public static void Post<TRequest>(string url, TRequest request, StringDictionary headers
+            , Action<WebRequest> onRequestDelegate = null
+            , Newtonsoft.Json.JsonSerializerSettings jsonSerializerSettings = null)
         {
-            string requestBody = Newtonsoft.Json.JsonConvert.SerializeObject(request);
+            string requestBody = Newtonsoft.Json.JsonConvert.SerializeObject(request
+                , jsonSerializerSettings ?? GetJsonSerializerSettings());
 
             ExecuteRequest("POST", url, requestBody, headers, onRequestDelegate);
         }
@@ -164,28 +171,15 @@ namespace System.Net.Json
         /// <param name="request">Body of the request.</param>
         /// <param name="headers">HTTP headers of the request.</param>
         /// <param name="onRequestDelegate">Delegate to forward to the request.</param>
+        /// <param name="jsonSerializerSettings"></param>
         /// <returns>TResponse</returns>
         public static TResponse Post<TRequest, TResponse>(string url
             , TRequest request
             , StringDictionary headers
-            , Action<WebRequest> onRequestDelegate = null)
+            , Action<WebRequest> onRequestDelegate = null
+            , JsonSerializerSettings jsonSerializerSettings = null)
         {
-            return ExecuteRequest<TRequest, TResponse>("POST", url, request, headers);
-        }
-        #endregion
-
-        #region === POST Async ===
-        /// <summary>Provides a serialized POST method for an API.</summary>
-        /// <typeparam name="TRequest"></typeparam>
-        /// <typeparam name="TResponse"></typeparam>
-        /// <param name="url">Url of the request.</param>
-        /// <param name="request">Body of the request.</param>
-        /// <param name="headers">HTTP headers of the request.</param>
-        /// <returns></returns>
-        public static async Task<TResponse> PostAsync<TRequest, TResponse>(string url
-            , TRequest request, StringDictionary headers)
-        {
-            return await ExecuteRequestAsync<TRequest, TResponse>("POST", url, request, headers);
+            return ExecuteRequest<TRequest, TResponse>("POST", url, request, headers, jsonSerializerSettings);
         }
         #endregion
 
@@ -193,10 +187,12 @@ namespace System.Net.Json
         /// <summary></summary>
         /// <param name="url"></param>
         /// <param name="headers"></param>
+        /// <param name="jsonSerializerSettings"></param>
         /// <returns>TResponse</returns>
-        public static TResponse Get<TResponse>(string url, StringDictionary headers) 
+        public static TResponse Get<TResponse>(string url, StringDictionary headers
+            , JsonSerializerSettings jsonSerializerSettings = null) 
         {
-            return ExecuteRequest<Object, TResponse>("GET", url, null, headers);
+            return ExecuteRequest<Object, TResponse>("GET", url, null, headers, jsonSerializerSettings);
         }
         /// <summary></summary>
         /// <param name="url"></param>
@@ -263,20 +259,23 @@ namespace System.Net.Json
         /// <returns>TResponse</returns>
         private static TResponse ExecuteRequest<TRequest, TResponse>(string method
             , string url
-            , TRequest request, StringDictionary headers)
+            , TRequest request
+            , StringDictionary headers
+            , Newtonsoft.Json.JsonSerializerSettings jsonSerializerSettings)
         {
             try
             {
                 string requestBody = JsonConvert.SerializeObject(request,
                     Formatting.None,
-                    GetJsonSerializerSettings()
+                    jsonSerializerSettings ?? GetJsonSerializerSettings()
                 );
 
                 string responseBody = ExecuteRequest(method, url, requestBody, headers);
                 if (string.IsNullOrEmpty(responseBody))
                     return default(TResponse);
 
-                return JsonConvert.DeserializeObject<TResponse>(responseBody, GetJsonSerializerSettings());
+                return JsonConvert.DeserializeObject<TResponse>(responseBody
+                    , jsonSerializerSettings ?? GetJsonSerializerSettings());
             }
             catch (Exception e)
             {
