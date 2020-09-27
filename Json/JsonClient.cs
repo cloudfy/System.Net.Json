@@ -143,9 +143,9 @@ namespace System.Net.Json
         /// <param name="jsonSerializerSettings"></param>
         public static void Post<TRequest>(string url, TRequest request, StringDictionary headers
             , Action<WebRequest> onRequestDelegate = null
-            , Newtonsoft.Json.JsonSerializerSettings jsonSerializerSettings = null)
+            , JsonSerializerSettings jsonSerializerSettings = null)
         {
-            string requestBody = Newtonsoft.Json.JsonConvert.SerializeObject(request
+            string requestBody = JsonConvert.SerializeObject(request
                 , jsonSerializerSettings ?? GetJsonSerializerSettings());
 
             ExecuteRequest("POST", url, requestBody, headers, onRequestDelegate);
@@ -254,6 +254,7 @@ namespace System.Net.Json
         /// <param name="url"></param>
         /// <param name="request"></param>
         /// <param name="headers"></param>
+        /// <param name="jsonSerializerSettings"></param>
         /// <typeparam name="TRequest"></typeparam>
         /// <typeparam name="TResponse"></typeparam>
         /// <returns>TResponse</returns>
@@ -261,7 +262,7 @@ namespace System.Net.Json
             , string url
             , TRequest request
             , StringDictionary headers
-            , Newtonsoft.Json.JsonSerializerSettings jsonSerializerSettings)
+            , JsonSerializerSettings jsonSerializerSettings)
         {
             try
             {
@@ -404,7 +405,8 @@ namespace System.Net.Json
         private static JsonSerializerSettings GetJsonSerializerSettings()
         {
             return new JsonSerializerSettings { 
-                NullValueHandling = NullValueHandling.Ignore
+                NullValueHandling = NullValueHandling.Ignore,
+                ReferenceLoopHandling = ReferenceLoopHandling.Ignore
             };
         }
         #endregion

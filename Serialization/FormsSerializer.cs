@@ -3,13 +3,14 @@ using Newtonsoft.Json.Serialization;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Net.Json.Internals;
 using System.Reflection;
 using System.Text;
 
 namespace System.Net.Serialization
 {
     /// <summary>
-    /// 
+    /// Provides serialization of objects into form method post data.
     /// </summary>
     internal static class FormsSerializer
     {
@@ -24,6 +25,9 @@ namespace System.Net.Serialization
             StringBuilder sb = new StringBuilder();
             foreach (var prop in request.GetType().GetProperties())
             {
+                if (prop.ExcludeSerialization())
+                    continue;
+
                 if (sb.Length > 0)
                     sb.Append("&");
 
