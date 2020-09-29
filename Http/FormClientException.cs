@@ -39,6 +39,21 @@ namespace System.Net.Http
             _statusCode = statusCode;
             _statusDescription = statusDescription;
         }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="message"></param>
+        /// <param name="statusCode"></param>
+        /// <param name="statusDescription"></param>
+        /// <param name="innerException"></param>
+        public FormClientException(string message
+            , System.Net.HttpStatusCode statusCode
+            , string statusDescription
+            , Exception innerException) : base(message, innerException)
+        {
+            _statusCode = statusCode;
+            _statusDescription = statusDescription;
+        }
         #endregion
 
         #region === public properties ===

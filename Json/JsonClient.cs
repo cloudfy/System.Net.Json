@@ -8,6 +8,7 @@ using System.Collections.Specialized;
 using Newtonsoft.Json;
 using System.IO;
 using Newtonsoft.Json.Serialization;
+using System.Net.Infrastructure;
 
 namespace System.Net.Json
 {
@@ -57,6 +58,11 @@ namespace System.Net.Json
             return JsonConvert.DeserializeObject<T>(outputString);
         }
         #endregion
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public static IRequestDebugger Debugger { get; set; }
 
         #region === PUT ===
         /// <summary>Provides a serialized PUT method for an API.</summary>
@@ -271,6 +277,8 @@ namespace System.Net.Json
                     jsonSerializerSettings ?? GetJsonSerializerSettings()
                 );
 
+                DebugSerialization(requestBody, request);
+
                 string responseBody = ExecuteRequest(method, url, requestBody, headers);
                 if (string.IsNullOrEmpty(responseBody))
                     return default(TResponse);
@@ -322,7 +330,9 @@ namespace System.Net.Json
                 }
             }
             onRequestDelete?.Invoke(request);
-            
+
+            DebugRequest(request);
+
             try
             {
                 if (request.Method == "POST" | request.Method == "PUT" | request.Method == "PATCH")
@@ -340,6 +350,8 @@ namespace System.Net.Json
 
                 using (var response = (HttpWebResponse)request.GetResponse())
                 {
+                    DebugResponse(response);
+
                     if (response.StatusCode == HttpStatusCode.OK |
                         response.StatusCode == HttpStatusCode.Accepted |
                         response.StatusCode == HttpStatusCode.Created |
@@ -385,6 +397,35 @@ namespace System.Net.Json
         #endregion
 
         #region === private statics ===
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="body"></param>
+        /// <param name="obj"></param>
+        private static void DebugSerialization(string body, object obj)
+        {
+            if (JsonClient.Debugger != null && body != null)
+                JsonClient.Debugger.OnSerialization(body, obj);
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="request"></param>
+        private static void DebugRequest(WebRequest request)
+        {
+            if (JsonClient.Debugger != null && request != null)
+                JsonClient.Debugger.OnRequest(request);
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="request"></param>
+        private static void DebugResponse(WebResponse response)
+        {
+            if (JsonClient.Debugger != null && response != null)
+                JsonClient.Debugger.OnResponse(response);
+        }
+
         /// <summary>
         /// Reads the response stream.
         /// </summary>

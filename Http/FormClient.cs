@@ -2,20 +2,28 @@
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.IO;
+using System.Net.Infrastructure;
 using System.Text;
 
 namespace System.Net.Http
 {
     /// <summary>
-    /// 
+    /// Provides methods to handle form based request processing.
     /// </summary>
     public sealed class FormClient
     {
         #region === constructor ===
         /// <summary>
-        /// 
+        /// Constructor.
         /// </summary>
         public FormClient() { }
+        #endregion
+
+        #region === IRequestDebugger implementation ===
+        /// <summary>
+        /// 
+        /// </summary>
+        public static IRequestDebugger Debugger { get; set; } 
         #endregion
 
         #region === POST ===
@@ -55,12 +63,44 @@ namespace System.Net.Http
         public static string Post<T>(string url, StringDictionary headers, T request)
         {
             string body = Serialization.FormsSerializer.Serialize(request);
+
+            DebugSerialization(body, request);
+
             return ExecuteRequest("POST", url, body
                 , headers);
         }
         #endregion
 
         #region === private methods ===
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="body"></param>
+        /// <param name="obj"></param>
+        private static void DebugSerialization(string body, object obj)
+        {
+            if (FormClient.Debugger != null && body != null)
+                FormClient.Debugger.OnSerialization(body, obj);
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="request"></param>
+        private static void DebugRequest(WebRequest request)
+        {
+            if (FormClient.Debugger != null && request != null)
+                FormClient.Debugger.OnRequest(request);
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="request"></param>
+        private static void DebugResponse(WebResponse response)
+        {
+            if (FormClient.Debugger != null && response != null)
+                FormClient.Debugger.OnResponse(response);
+        }
+
         /// <summary>
         /// 
         /// </summary>
@@ -106,9 +146,10 @@ namespace System.Net.Http
         /// <exception cref="FormClientException"></exception>
         private static string ExecuteRequest(string method, string url, string body, StringDictionary headers)
         {
+            // prepare request
             HttpWebRequest request = WebRequest.CreateHttp(url);
             request.Method = method.ToUpper();
-            request.ContentType = "application/x-www-form-urlencoded";
+            request.ContentType = "application/x-www-form-urlencoded; charset=utf-8";
             request.KeepAlive = true;
             request.AllowAutoRedirect = true;
             request.Timeout = 50000;
@@ -129,6 +170,8 @@ namespace System.Net.Http
                 }
             }
 
+            DebugRequest(request);
+
             try
             {
                 if (!string.IsNullOrEmpty(body) && (request.Method == "POST" | request.Method == "PUT" | request.Method == "PATCH"))
@@ -146,6 +189,8 @@ namespace System.Net.Http
 
                 using (var response = (HttpWebResponse)request.GetResponse())
                 {
+                    DebugResponse(response);
+
                     if (response.StatusCode == HttpStatusCode.OK |
                         response.StatusCode == HttpStatusCode.Accepted |
                         response.StatusCode == HttpStatusCode.Created |
@@ -155,7 +200,7 @@ namespace System.Net.Http
                     }
                     else
                     {
-                        throw new Exception();
+                        throw new Exception("Unknown status code");
                     }
                 }
             }

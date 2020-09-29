@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Net.Infrastructure;
 using System.Net.Json.Serialization;
 using System.Reflection;
 using System.Text;

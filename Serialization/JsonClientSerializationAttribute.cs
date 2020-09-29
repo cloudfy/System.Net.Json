@@ -23,15 +23,4 @@ namespace System.Net.Json.Serialization
         /// </summary>
         public JsonClientSerializationExclude Exclude { get; private set; }
     }
-    /// <summary>
-    /// 
-    /// </summary>
-    public enum JsonClientSerializationExclude
-    {
-        Any,
-        Post,
-        Get,
-        Patch,
-        Put
-    }
 }
