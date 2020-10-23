@@ -179,6 +179,7 @@ namespace System.Net.Json.Api
         {
             return true;
         }
+
         /// <summary>
         /// 
         /// </summary>
@@ -190,23 +191,5 @@ namespace System.Net.Json.Api
             e = ex;
             return true;
         }
-
-        //protected internal abstract void MustTest();
-
-        //// visible to inherited classes.
-        //protected internal virtual void Test()
-        //{
-
-        //}
-        //// // visible to inherited classes.
-        //protected virtual void Test2()
-        //{
-
-        //}
-        //// not visible to interited classes (new assembly)
-        //internal virtual void Test3()
-        //{
-
-        //}
     }
 }

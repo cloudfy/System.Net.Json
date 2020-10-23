@@ -34,11 +34,12 @@ namespace System.Net.Http
         /// <param name="values"></param>
         /// <param name="headers"></param>
         /// <returns></returns>
-        public static string Post(string url, StringDictionary values, StringDictionary headers)
+        public static string Post(string url, StringDictionary values, StringDictionary headers
+            , Action<WebRequest> onRequestDelegate = null)
         {
             string body = GetFormsBody(values);
             return ExecuteRequest("POST", url, body
-                , headers);
+                , headers, onRequestDelegate);
         }
         /// <summary>
         /// 
@@ -47,11 +48,13 @@ namespace System.Net.Http
         /// <param name="headers"></param>
         /// <param name="values"></param>
         /// <returns></returns>
-        public static string Post(string url, StringDictionary headers, params Tuple<string, string>[] values)
+        public static string Post(string url, StringDictionary headers
+            , Action<WebRequest> onRequestDelegate = null
+            , params Tuple<string, string>[] values)
         {
             string body = GetFormsBody(values);
             return ExecuteRequest("POST", url, body
-                , headers);
+                , headers, onRequestDelegate);
         }
         /// <summary>
         /// 
@@ -60,14 +63,14 @@ namespace System.Net.Http
         /// <param name="url"></param>
         /// <param name="request"></param>
         /// <returns></returns>
-        public static string Post<T>(string url, StringDictionary headers, T request)
+        public static string Post<T>(string url, StringDictionary headers, T request, Action<WebRequest> onRequestDelegate = null)
         {
             string body = Serialization.FormsSerializer.Serialize(request);
 
             DebugSerialization(body, request);
 
             return ExecuteRequest("POST", url, body
-                , headers);
+                , headers, onRequestDelegate);
         }
         #endregion
 
@@ -142,9 +145,12 @@ namespace System.Net.Http
         /// <param name="url"></param>
         /// <param name="body"></param>
         /// <param name="headers"></param>
+        /// <param name="onRequestDelegate"></param>
         /// <returns></returns>
         /// <exception cref="FormClientException"></exception>
-        private static string ExecuteRequest(string method, string url, string body, StringDictionary headers)
+        private static string ExecuteRequest(string method, string url, string body
+            , StringDictionary headers
+            , Action<WebRequest> onRequestDelegate)
         {
             // prepare request
             HttpWebRequest request = WebRequest.CreateHttp(url);
@@ -169,6 +175,7 @@ namespace System.Net.Http
                         request.Headers.Add(key, headers[key]);
                 }
             }
+            onRequestDelegate?.Invoke(request);
 
             DebugRequest(request);
 

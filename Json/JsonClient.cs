@@ -299,12 +299,12 @@ namespace System.Net.Json
         /// <param name="url"></param>
         /// <param name="body"></param>
         /// <param name="headers"></param>
-        /// <param name="onRequestDelete"></param>
+        /// <param name="onRequestDelegate"></param>
         /// <returns></returns>
         /// <exception cref="WebException"></exception>
         /// <exception cref="Exception"></exception>
         private static string ExecuteRequest(string method, string url
-            , string body, StringDictionary headers, Action<WebRequest> onRequestDelete)
+            , string body, StringDictionary headers, Action<WebRequest> onRequestDelegate)
         {
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
             request.Method = method.ToUpper();
@@ -329,7 +329,7 @@ namespace System.Net.Json
                         request.Headers.Add(key, headers[key]);
                 }
             }
-            onRequestDelete?.Invoke(request);
+            onRequestDelegate?.Invoke(request);
 
             DebugRequest(request);
 
