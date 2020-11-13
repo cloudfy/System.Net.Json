@@ -8,11 +8,11 @@
     <RootNamespace>System.Net.Json</RootNamespace>
     <ApplicationIcon />
     <StartupObject />
-    <AssemblyVersion>2.8.5.0</AssemblyVersion>
+    <AssemblyVersion>2.8.5.30</AssemblyVersion>
     <TargetFrameworks>netstandard2.0;net452</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <FileVersion>2.8.5.0</FileVersion>
-    <Version>2.8.5.0</Version>
+    <FileVersion>2.8.5.30</FileVersion>
+    <Version>2.8.5.30</Version>
     <Company>System.Net.Json</Company>
     <PackageId>SystemNetJson</PackageId>
     <PackageProjectUrl>https://github.com/cloudfy/System.Net.Json</PackageProjectUrl>

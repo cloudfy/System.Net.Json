@@ -35,15 +35,25 @@ namespace System.Net.Serialization
                 if (sb.Length > 0 && value != null)
                     sb.Append("&");
 
-                if (value != null && value.GetType() == typeof(StringDictionary))
+                if (value != null && value is StringDictionary)
                 {
                     // should format 'propertyname[keyname]=value'
-                    StringDictionary values = value as StringDictionary;
+                    var values = value as StringDictionary;
                     foreach (string key in values.Keys)
                     {
                         sb.Append($"{name}[{Encode(key)}]={Encode(values[key])}");
                     }
                 }
+                else if (value != null && value is Dictionary<string, string>)
+                {
+                    // should format 'propertyname[keyname]=value'
+                    var values = value as Dictionary<string, string>;
+                    foreach (string key in values.Keys)
+                    {
+                        sb.Append($"{name}[{Encode(key)}]={Encode(values[key])}");
+                    }
+                }
+
                 else if (value != null && !string.IsNullOrEmpty(value.ToString()))
                 {
                     sb.Append($"{name}={Encode(value.ToString())}");
