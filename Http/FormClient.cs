@@ -4,6 +4,7 @@ using System.Collections.Specialized;
 using System.IO;
 using System.Net.Infrastructure;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace System.Net.Http
 {
@@ -34,13 +35,29 @@ namespace System.Net.Http
         /// <param name="values"></param>
         /// <param name="headers"></param>
         /// <returns></returns>
-        public static string Post(string url, StringDictionary values, StringDictionary headers
+        public static async Task<string> PostAsync(string url, StringDictionary values, StringDictionary headers
             , Action<WebRequest> onRequestDelegate = null)
         {
             string body = GetFormsBody(values);
-            return ExecuteRequest("POST", url, body
+            return await ExecuteRequestAsync("POST", url, body
                 , headers, onRequestDelegate);
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="url"></param>
+        /// <param name="values"></param>
+        /// <param name="headers"></param>
+        /// <param name="onRequestDelegate"></param>
+        /// <returns></returns>
+        public static string Post(
+            string url
+            , StringDictionary values
+            , StringDictionary headers
+            , Action<WebRequest> onRequestDelegate = null) 
+            => PostAsync(url, values, headers, onRequestDelegate).Result;
+
         /// <summary>
         /// 
         /// </summary>
@@ -50,12 +67,26 @@ namespace System.Net.Http
         /// <returns></returns>
         public static string Post(string url, StringDictionary headers
             , Action<WebRequest> onRequestDelegate = null
+            , params Tuple<string, string>[] values) 
+            => PostAsync(url, headers, onRequestDelegate, values).Result;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="url"></param>
+        /// <param name="headers"></param>
+        /// <param name="onRequestDelegate"></param>
+        /// <param name="values"></param>
+        /// <returns></returns>
+        public static async Task<string> PostAsync(string url, StringDictionary headers
+            , Action<WebRequest> onRequestDelegate = null
             , params Tuple<string, string>[] values)
         {
             string body = GetFormsBody(values);
-            return ExecuteRequest("POST", url, body
+            return await ExecuteRequestAsync("POST", url, body
                 , headers, onRequestDelegate);
         }
+
         /// <summary>
         /// 
         /// </summary>
@@ -63,15 +94,28 @@ namespace System.Net.Http
         /// <param name="url"></param>
         /// <param name="request"></param>
         /// <returns></returns>
-        public static string Post<T>(string url, StringDictionary headers, T request, Action<WebRequest> onRequestDelegate = null)
+        public static async Task<string> PostAsync<T>(string url, StringDictionary headers, T request, Action<WebRequest> onRequestDelegate = null)
         {
             string body = Serialization.FormsSerializer.Serialize(request);
 
             DebugSerialization(body, request);
 
-            return ExecuteRequest("POST", url, body
+            return await ExecuteRequestAsync("POST", url, body
                 , headers, onRequestDelegate);
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="url"></param>
+        /// <param name="headers"></param>
+        /// <param name="request"></param>
+        /// <param name="onRequestDelegate"></param>
+        /// <returns></returns>
+        public static string Post<T>(string url, StringDictionary headers
+            , T request, Action<WebRequest> onRequestDelegate = null) 
+            => PostAsync(url, headers, request, onRequestDelegate).Result;
         #endregion
 
         #region === private methods ===
@@ -150,6 +194,20 @@ namespace System.Net.Http
         /// <exception cref="FormClientException"></exception>
         private static string ExecuteRequest(string method, string url, string body
             , StringDictionary headers
+            , Action<WebRequest> onRequestDelegate) 
+            => ExecuteRequestAsync(method, url, body, headers, onRequestDelegate).Result;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="method"></param>
+        /// <param name="url"></param>
+        /// <param name="body"></param>
+        /// <param name="headers"></param>
+        /// <param name="onRequestDelegate"></param>
+        /// <returns></returns>
+        private static async Task<string> ExecuteRequestAsync(string method, string url, string body
+            , StringDictionary headers
             , Action<WebRequest> onRequestDelegate)
         {
             // prepare request
@@ -190,12 +248,13 @@ namespace System.Net.Http
                     // set content length
                     request.ContentLength = bytes.Length;
 
-                    using (Stream requestStream = request.GetRequestStream())
-                        requestStream.Write(bytes, 0, bytes.Length);
+                    using (Stream requestStream = await request.GetRequestStreamAsync())
+                        await requestStream.WriteAsync(bytes, 0, bytes.Length);
                 }
 
-                using (var response = (HttpWebResponse)request.GetResponse())
+                using (var firstResponse = await request.GetResponseAsync())
                 {
+                    var response = (HttpWebResponse)firstResponse;
                     DebugResponse(response);
 
                     if (response.StatusCode == HttpStatusCode.OK |
@@ -203,7 +262,7 @@ namespace System.Net.Http
                         response.StatusCode == HttpStatusCode.Created |
                         response.StatusCode == HttpStatusCode.NoContent)
                     {
-                        return ReadResponse(response.GetResponseStream());
+                        return await ReadResponseAsync(response.GetResponseStream());
                     }
                     else
                     {
@@ -220,7 +279,7 @@ namespace System.Net.Http
 
                 if (e.Status == WebExceptionStatus.ProtocolError)
                 {
-                    var text = ReadResponse(e.Response.GetResponseStream());
+                    var text = await ReadResponseAsync(e.Response.GetResponseStream());
                     throw new FormClientException(text
                         , (e.Response as HttpWebResponse).StatusCode
                         , (e.Response as HttpWebResponse).StatusDescription);
@@ -232,18 +291,26 @@ namespace System.Net.Http
                 throw e;
             }
         }
+
         /// <summary>
         /// 
         /// </summary>
         /// <param name="s"></param>
         /// <returns></returns>
-        private static string ReadResponse(Stream s)
+        private static string ReadResponse(Stream s) => ReadResponseAsync(s).Result;
+        
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="s"></param>
+        /// <returns></returns>
+        private static async Task<string> ReadResponseAsync(Stream s)
         {
             using (var reader = new StreamReader(s))
             {
-                return reader.ReadToEnd();
+                return await reader.ReadToEndAsync();
             }
-        } 
+        }
         #endregion
     }
 }

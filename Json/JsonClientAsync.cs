@@ -91,6 +91,37 @@ namespace System.Net.Json
         {
             return await ExecuteRequestAsync<TRequest, TResponse>("PUT", url, request, headers);
         }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TRequest"></typeparam>
+        /// <typeparam name="TResponse"></typeparam>
+        /// <param name="url"></param>
+        /// <param name="request"></param>
+        /// <param name="headers"></param>
+        /// <param name="jsonSerializerSettings"></param>
+        /// <returns></returns>
+        public static async Task<TResponse> PutAsync<TRequest, TResponse>(string url
+            , TRequest request, StringDictionary headers, Newtonsoft.Json.JsonSerializerSettings jsonSerializerSettings)
+        {
+            return await ExecuteRequestAsync<TRequest, TResponse>("PUT", url, request, headers, jsonSerializerSettings);
+        }
+        #endregion
+
+        #region === DELETE ===
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="url"></param>
+        /// <param name="headers"></param>
+        /// <returns></returns>
+        public static async Task<bool> DeleteAsync(string url
+            , StringDictionary headers)
+        {
+            var result = await ExecuteRequestAsync("DELETE", url, null, headers);
+
+            return await Task.FromResult(true);
+        }
         #endregion
 
         #region === private methods ===

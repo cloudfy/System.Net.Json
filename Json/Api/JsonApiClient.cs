@@ -14,6 +14,24 @@ namespace System.Net.Json.Api
     {
         #region === JSON HTTP ===
         /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="url"></param>
+        protected virtual bool Delete(string url)
+        {
+            try
+            {
+                return JsonClient.Delete(url, this.GetHeaders());
+            }
+            catch (Exception e)
+            {
+                if (HandleException(e))
+                    throw e;
+
+                return false;
+            }
+        }
+        /// <summary>
         /// Performs a HTTP GET.
         /// </summary>
         /// <typeparam name="T"></typeparam>
