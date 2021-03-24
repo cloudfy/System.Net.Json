@@ -8,11 +8,11 @@
     <RootNamespace>System.Net.Json</RootNamespace>
     <ApplicationIcon />
     <StartupObject />
-    <AssemblyVersion>2.8.60.0</AssemblyVersion>
+    <AssemblyVersion>2.9.0.0</AssemblyVersion>
     <TargetFrameworks>netstandard2.0;net452</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <FileVersion>2.8.60.0</FileVersion>
-    <Version>2.8.60.0</Version>
+    <FileVersion>2.9.0.0</FileVersion>
+    <Version>2.9.0.0</Version>
     <Company>System.Net.Json</Company>
     <PackageId>SystemNetJson</PackageId>
     <PackageProjectUrl>https://github.com/cloudfy/System.Net.Json</PackageProjectUrl>
@@ -34,7 +34,7 @@ Support for GET; POST; UPDATE; PATCH using Newtonsoft Json serialization.</Descr
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
   </ItemGroup>
 
   <PropertyGroup Condition=" '$(TargetFramework)' == 'net452'">
