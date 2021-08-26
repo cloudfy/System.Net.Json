@@ -68,7 +68,7 @@ namespace System.Net
             if (string.IsNullOrEmpty(value))
                 return value;
 
-#if NETFW
+#if NET461
             return System.Net.WebUtility.UrlEncode(value);
 #else
             return System.Web.HttpUtility.UrlEncode(value);
@@ -85,7 +85,7 @@ namespace System.Net
             if (string.IsNullOrEmpty(value))
                 return value;
 
-#if NETFW
+#if NET461
             return System.Net.WebUtility.UrlDecode(value);
 #else
             return System.Web.HttpUtility.UrlDecode(value);
