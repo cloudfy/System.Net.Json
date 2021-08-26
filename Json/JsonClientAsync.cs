@@ -78,6 +78,36 @@ namespace System.Net.Json
         }
         #endregion
 
+        #region === PATCH ===
+        /// <summary>
+        /// </summary>
+        /// <typeparam name="TRequest"></typeparam>
+        /// <typeparam name="TResponse"></typeparam>
+        /// <param name="url"></param>
+        /// <param name="request"></param>
+        /// <param name="headers"></param>
+        public static async Task<TResponse> PatchAsync<TRequest, TResponse>(string url
+            , TRequest request, StringDictionary headers)
+        {
+            return await ExecuteRequestAsync<TRequest, TResponse>("PATCH", url, request, headers);
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TRequest"></typeparam>
+        /// <typeparam name="TResponse"></typeparam>
+        /// <param name="url"></param>
+        /// <param name="request"></param>
+        /// <param name="headers"></param>
+        /// <param name="jsonSerializerSettings"></param>
+        /// <returns></returns>
+        public static async Task<TResponse> PatchAsync<TRequest, TResponse>(string url
+            , TRequest request, StringDictionary headers, Newtonsoft.Json.JsonSerializerSettings jsonSerializerSettings)
+        {
+            return await ExecuteRequestAsync<TRequest, TResponse>("PATCH", url, request, headers, jsonSerializerSettings);
+        }
+        #endregion
+
         #region === PUT ===
         /// <summary>
         /// </summary>
