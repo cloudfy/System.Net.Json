@@ -18,8 +18,10 @@ namespace System.Net.Json
     /// </summary>
     public sealed class JsonClient
     {
+        #region === member variables ===
         /// <summary></summary>
-        private readonly HttpClient InnerHttpClient;
+        private readonly HttpClient InnerHttpClient; 
+        #endregion
 
         #region === constructor ===
         /// <summary>
@@ -155,6 +157,7 @@ namespace System.Net.Json
         }
         #endregion
 
+        #region === private methods ===
         /// <summary>
         /// 
         /// </summary>
@@ -204,7 +207,7 @@ namespace System.Net.Json
             string url, HttpMethodEnum method, StringDictionary headers, JsonSerializerSettings jsonSerializerSettings)
         {
             var requestMessage = new HttpRequestMessage(GetHttpMethod(method), url);
-            
+
             foreach (string key in headers.Keys)
                 requestMessage.Headers.Add(key, headers[key]);
 
@@ -245,10 +248,12 @@ namespace System.Net.Json
         /// <returns></returns>
         private JsonSerializerSettings GetJsonSerializerSettings()
         {
-            return new JsonSerializerSettings { 
+            return new JsonSerializerSettings
+            {
                 NullValueHandling = NullValueHandling.Ignore,
                 ReferenceLoopHandling = ReferenceLoopHandling.Ignore
             };
-        }
+        } 
+        #endregion
     }
 }
