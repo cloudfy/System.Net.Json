@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.IO;
-using System.Net.Infrastructure;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -18,13 +17,6 @@ namespace System.Net.Http
         /// Constructor.
         /// </summary>
         public FormClient() { }
-        #endregion
-
-        #region === IRequestDebugger implementation ===
-        /// <summary>
-        /// 
-        /// </summary>
-        public static IRequestDebugger Debugger { get; set; } 
         #endregion
 
         #region === POST ===
@@ -98,8 +90,6 @@ namespace System.Net.Http
         {
             string body = Serialization.FormsSerializer.Serialize(request);
 
-            DebugSerialization(body, request);
-
             return await ExecuteRequestAsync("POST", url, body
                 , headers, onRequestDelegate);
         }
@@ -119,35 +109,6 @@ namespace System.Net.Http
         #endregion
 
         #region === private methods ===
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="body"></param>
-        /// <param name="obj"></param>
-        private static void DebugSerialization(string body, object obj)
-        {
-            if (FormClient.Debugger != null && body != null)
-                FormClient.Debugger.OnSerialization(body, obj);
-        }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="request"></param>
-        private static void DebugRequest(WebRequest request)
-        {
-            if (FormClient.Debugger != null && request != null)
-                FormClient.Debugger.OnRequest(request);
-        }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="request"></param>
-        private static void DebugResponse(WebResponse response)
-        {
-            if (FormClient.Debugger != null && response != null)
-                FormClient.Debugger.OnResponse(response);
-        }
-
         /// <summary>
         /// 
         /// </summary>
@@ -235,8 +196,6 @@ namespace System.Net.Http
             }
             onRequestDelegate?.Invoke(request);
 
-            DebugRequest(request);
-
             try
             {
                 if (!string.IsNullOrEmpty(body) && (request.Method == "POST" | request.Method == "PUT" | request.Method == "PATCH"))
@@ -255,8 +214,7 @@ namespace System.Net.Http
                 using (var firstResponse = await request.GetResponseAsync())
                 {
                     var response = (HttpWebResponse)firstResponse;
-                    DebugResponse(response);
-
+                    
                     if (response.StatusCode == HttpStatusCode.OK |
                         response.StatusCode == HttpStatusCode.Accepted |
                         response.StatusCode == HttpStatusCode.Created |

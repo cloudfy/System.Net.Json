@@ -8,15 +8,41 @@ using System.Collections.Specialized;
 using Newtonsoft.Json;
 using System.IO;
 using Newtonsoft.Json.Serialization;
-using System.Net.Infrastructure;
+using System.Net.Http;
+using System.Net.Internals;
 
 namespace System.Net.Json
 {
     /// <summary>
     /// Provides methods for communicating with Json endpoints.
     /// </summary>
-    public static partial class JsonClient
+    public sealed class JsonClient
     {
+        #region === member variables ===
+        /// <summary></summary>
+        private readonly HttpClient InnerHttpClient; 
+        #endregion
+
+        #region === constructor ===
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="httpClient"></param>
+        public JsonClient(HttpClient httpClient)
+        {
+            this.InnerHttpClient = httpClient;
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="httpClientFactory"></param>
+        /// <param name="name"></param>
+        public JsonClient(IHttpClientFactory httpClientFactory, string name = null)
+            : this(httpClientFactory.CreateClient(name))
+        {
+        } 
+        #endregion
+
         #region === static methods ===
         /// <summary>Converts a string into a base64 string.</summary>
         /// <param name="input">String to convert.</param>
@@ -59,133 +85,32 @@ namespace System.Net.Json
         }
         #endregion
 
-        /// <summary>
-        /// 
-        /// </summary>
-        public static IRequestDebugger Debugger { get; set; }
-
         #region === PUT ===
-        /// <summary>Provides a serialized PUT method for an API.</summary>
-        /// <param name="url">Url of the request.</param>
-        /// <param name="body">Body of the request.</param>
-        /// <param name="headers">HTTP headers of the request.</param>
-        /// <returns>string</returns>
-        public static string Put(string url, string body, StringDictionary headers)
-        {
-            return ExecuteRequest("PUT", url, body, headers);
-        }
-
-        /// <summary>Provides a serialized PUT method for an API.</summary>
-        /// <param name="url">Url of the request.</param>
-        /// <param name="requestBody">Body of the request.</param>
-        /// <param name="headers">HTTP headers of the request.</param>
-        /// <returns>TResponse</returns>
-        public static TResponse Put<TResponse>(string url, string requestBody, StringDictionary headers)
-        {
-            string responseBody = ExecuteRequest("PUT", url, requestBody, headers);
-            return Newtonsoft.Json.JsonConvert.DeserializeObject<TResponse>(responseBody, GetJsonSerializerSettings());
-        }
-
-        /// <summary>Provides a serialized PUT method for an API.</summary>
-        /// <param name="url">Url of the request.</param>
-        /// <param name="request">Value of the request.</param>
-        /// <param name="headers">HTTP headers of the request.</param>
-        /// <returns>TResponse</returns>
-        public static void Put<TRequest>(string url, TRequest request, StringDictionary headers) where TRequest : class
-        {
-            string requestBody = Newtonsoft.Json.JsonConvert.SerializeObject(request);
-            ExecuteRequest("PUT", url, requestBody, headers);
-        }
-
         /// <summary>Provides a serialized PUT method for an API.</summary>
         /// <param name="url">Url of the request.</param>
         /// <param name="request">Request of the method.</param>
         /// <param name="headers">HTTP headers of the request.</param>
         /// <param name="jsonSerializerSettings"></param>
         /// <returns>TResponse</returns>
-        public static TResponse Put<TRequest, TResponse>(string url
-            , TRequest request, StringDictionary headers
-            , Newtonsoft.Json.JsonSerializerSettings jsonSerializerSettings = null) 
-            where TResponse : class where TRequest : class
+        public async Task<TResponse> Put<TRequest, TResponse>(
+            string url
+            , TRequest request
+            , StringDictionary headers
+            , JsonSerializerSettings jsonSerializerSettings = null) 
         {
-            return ExecuteRequest<TRequest, TResponse>("PUT", url, request, headers, jsonSerializerSettings);
+            return await ExecuteRequest<TRequest, TResponse>(url, HttpMethodEnum.Put, request, headers, jsonSerializerSettings);
         }
         #endregion
 
         #region === POST ===
         /// <summary>Provides a serialized POST method for an API.</summary>
         /// <param name="url">Url of the request.</param>
-        /// <param name="body">Body of the request.</param>
+        /// <param name="request">Body of the request.</param>
         /// <param name="headers">HTTP headers of the request.</param>
-        /// <returns>string</returns>
-        public static string Post(string url, string body, StringDictionary headers)
-        {
-            return ExecuteRequest("POST", url, body, headers);
-        }
-
-        /// <summary>Provides a serialized POST method for an API.</summary>
-        /// <param name="url">Url of the request.</param>
-        /// <param name="requestBody">Body of the request.</param>
-        /// <param name="headers">HTTP headers of the request.</param>
-        /// <param name="onRequestDelegate">Delegate to forward to the request.</param>
         /// <returns>TResponse</returns>
-        public static TResponse Post<TResponse>(string url, string requestBody, StringDictionary headers, Action<WebRequest> onRequestDelegate = null)
+        public async Task<TResponse> Post<TRequest, TResponse>(string url, TRequest request, StringDictionary headers)
         {
-            string responseBody = ExecuteRequest("POST", url, requestBody, headers, onRequestDelegate);
-
-            if (string.IsNullOrEmpty(responseBody))
-                throw new ArgumentNullException("Response is empty, cannot deserialize. Request may have succeeded. Consider using PostNoResponse.");
-
-            return JsonConvert.DeserializeObject<TResponse>(responseBody, GetJsonSerializerSettings());
-        }
-        /// <summary>
-        /// Provides a serialized POST method for an API.
-        /// </summary>
-        /// <typeparam name="TRequest">Type of request body.</typeparam>
-        /// <param name="url">Url of the request.</param>
-        /// <param name="request">Body of the request.</param>
-        /// <param name="headers">HTTP headers of the request.</param>
-        /// <param name="onRequestDelegate">Delegate to forward to the request.</param>
-        /// <param name="jsonSerializerSettings"></param>
-        public static void Post<TRequest>(string url, TRequest request, StringDictionary headers
-            , Action<WebRequest> onRequestDelegate = null
-            , JsonSerializerSettings jsonSerializerSettings = null)
-        {
-            string requestBody = JsonConvert.SerializeObject(request
-                , jsonSerializerSettings ?? GetJsonSerializerSettings());
-
-            ExecuteRequest("POST", url, requestBody, headers, onRequestDelegate);
-        }
-        /// <summary>
-        /// Provides a serialized POST method for an API.
-        /// </summary>
-        /// <typeparam name="TRequest">Type of request body.</typeparam>
-        /// <param name="url">Url of the request.</param>
-        /// <param name="request">Body of the request.</param>
-        /// <param name="headers">HTTP headers of the request.</param>
-        /// <param name="onRequestDelegate">Delegate to forward to the request.</param>
-        [Obsolete("PostNoResponse is obsolete, use Post.")]
-        public static void PostNoResponse<TRequest>(string url, TRequest request
-            , StringDictionary headers, Action<WebRequest> onRequestDelegate = null)
-        {
-            Post<TRequest>(url, request, headers, onRequestDelegate);
-        }
-        /// <summary>Provides a serialized POST method for an API.</summary>
-        /// <typeparam name="TRequest"></typeparam>
-        /// <typeparam name="TResponse"></typeparam>
-        /// <param name="url">Url of the request.</param>
-        /// <param name="request">Body of the request.</param>
-        /// <param name="headers">HTTP headers of the request.</param>
-        /// <param name="onRequestDelegate">Delegate to forward to the request.</param>
-        /// <param name="jsonSerializerSettings"></param>
-        /// <returns>TResponse</returns>
-        public static TResponse Post<TRequest, TResponse>(string url
-            , TRequest request
-            , StringDictionary headers
-            , Action<WebRequest> onRequestDelegate = null
-            , JsonSerializerSettings jsonSerializerSettings = null)
-        {
-            return ExecuteRequest<TRequest, TResponse>("POST", url, request, headers, jsonSerializerSettings);
+            return await ExecuteRequest<TRequest, TResponse>(url, HttpMethodEnum.Post, request, headers, null);
         }
         #endregion
 
@@ -195,18 +120,12 @@ namespace System.Net.Json
         /// <param name="headers"></param>
         /// <param name="jsonSerializerSettings"></param>
         /// <returns>TResponse</returns>
-        public static TResponse Get<TResponse>(string url, StringDictionary headers
+        public async Task<TResponse> Get<TResponse>(
+            string url
+            , StringDictionary headers
             , JsonSerializerSettings jsonSerializerSettings = null) 
         {
-            return ExecuteRequest<Object, TResponse>("GET", url, null, headers, jsonSerializerSettings);
-        }
-        /// <summary></summary>
-        /// <param name="url"></param>
-        /// <param name="headers"></param>
-        /// <returns>string</returns>
-        public static string Get(string url, StringDictionary headers)
-        {
-            return ExecuteRequest("GET", url, null, headers);
+            return await ExecuteRequest<object, TResponse>(url, HttpMethodEnum.Get, null, headers, jsonSerializerSettings);
         }
         #endregion
 
@@ -215,9 +134,9 @@ namespace System.Net.Json
         /// <param name="url"></param>
         /// <param name="headers"></param>
         /// <returns>bool</returns>
-        public static bool Delete(string url, StringDictionary headers)
+        public async Task<bool> Delete(string url, StringDictionary headers)
         {
-            var response = ExecuteRequest("DELETE", url, null, headers);
+            await ExecuteRequest(url, HttpMethodEnum.Delete, headers, null);
             return true;
         }
         #endregion
@@ -231,225 +150,110 @@ namespace System.Net.Json
         /// <param name="request"></param>
         /// <param name="headers"></param>
         /// <returns></returns>
-        public static TResponse Patch<TResponse>(string url, Dictionary<string, object> request, StringDictionary headers)
+        public async Task<TResponse> Patch<TResponse>(string url, Dictionary<string, object> request, StringDictionary headers)
         {
-            string requestBody = Newtonsoft.Json.JsonConvert.SerializeObject(request);
-            var response = ExecuteRequest("PATCH", url, requestBody, headers);
+            return await ExecuteRequest<Dictionary<string, object>, TResponse>(
+                url, HttpMethodEnum.Patch, request, headers, null);
+        }
+        #endregion
 
-            return JsonConvert.DeserializeObject<TResponse>(response);
+        #region === private methods ===
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TResponse">Type of response.</typeparam>
+        /// <typeparam name="TRequest">Type of request.</typeparam>
+        /// <param name="url"></param>
+        /// <param name="method"></param>
+        /// <param name="request"></param>
+        /// <param name="headers"></param>
+        /// <returns></returns>
+        private async Task<TResponse> ExecuteRequest<TRequest, TResponse>(
+            string url, HttpMethodEnum method
+            , TRequest request
+            , StringDictionary headers, JsonSerializerSettings jsonSerializerSettings)
+        {
+            var requestMessage = new HttpRequestMessage(GetHttpMethod(method), url);
+            if (request != null)
+                requestMessage.Content = new JsonContent(request);
+
+            foreach (string key in headers.Keys)
+                requestMessage.Headers.Add(key, headers[key]);
+
+            try
+            {
+                var response = await this.InnerHttpClient.SendAsync(requestMessage);
+
+                response.EnsureSuccessStatusCode();
+
+                var responseString = await response.Content.ReadAsStringAsync();
+                return JsonConvert.DeserializeObject<TResponse>(responseString);
+
+            }
+            catch (Exception)
+            {
+                throw;
+            }
         }
         /// <summary>
         /// 
         /// </summary>
-        /// <typeparam name="TResponse">Type of response object.</typeparam>
-        /// <param name="url">Url of the request.</param>
-        /// <param name="requestBody">Body of the request.</param>
-        /// <param name="headers">HTTP headers of the request.</param>
-        /// <returns></returns>
-        public static TResponse Patch<TResponse>(string url, string requestBody, StringDictionary headers)
-        {
-            var response = ExecuteRequest("PATCH", url, requestBody, headers);
-
-            return JsonConvert.DeserializeObject<TResponse>(response);
-        }
-        #endregion
-
-        #region === private REQUEST LOGIC ===
-        /// <summary></summary>
-        /// <param name="method"></param>
         /// <param name="url"></param>
-        /// <param name="request"></param>
+        /// <param name="method"></param>
         /// <param name="headers"></param>
         /// <param name="jsonSerializerSettings"></param>
-        /// <typeparam name="TRequest"></typeparam>
-        /// <typeparam name="TResponse"></typeparam>
-        /// <returns>TResponse</returns>
-        private static TResponse ExecuteRequest<TRequest, TResponse>(string method
-            , string url
-            , TRequest request
-            , StringDictionary headers
-            , JsonSerializerSettings jsonSerializerSettings)
-        {
-            try
-            {
-                string requestBody = JsonConvert.SerializeObject(request,
-                    Formatting.None,
-                    jsonSerializerSettings ?? GetJsonSerializerSettings()
-                );
-
-                DebugSerialization(requestBody, request);
-
-                string responseBody = ExecuteRequest(method, url, requestBody, headers);
-                if (string.IsNullOrEmpty(responseBody))
-                    return default(TResponse);
-
-                return JsonConvert.DeserializeObject<TResponse>(responseBody
-                    , jsonSerializerSettings ?? GetJsonSerializerSettings());
-            }
-            catch (Exception e)
-            {
-                throw e;
-            }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="method"></param>
-        /// <param name="url"></param>
-        /// <param name="body"></param>
-        /// <param name="headers"></param>
-        /// <param name="onRequestDelegate"></param>
         /// <returns></returns>
-        /// <exception cref="WebException"></exception>
-        /// <exception cref="Exception"></exception>
-        private static string ExecuteRequest(string method, string url
-            , string body, StringDictionary headers, Action<WebRequest> onRequestDelegate)
+        private async Task ExecuteRequest(
+            string url, HttpMethodEnum method, StringDictionary headers, JsonSerializerSettings jsonSerializerSettings)
         {
-            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
-            request.Method = method.ToUpper();
-            request.AllowAutoRedirect = true;
-            request.Timeout = 50000;
-            request.KeepAlive = true;
- 
-            if (headers != null)
-            {
-                foreach (string key in headers.Keys)
-                {
-                    if (key.ToLower() == "content-type")
-                        request.ContentType = headers[key];
-                    else if (key.ToLower() == "user-agent")
-                        request.UserAgent = headers[key];
-                    else if (key.ToLower() == "accept")
-                        request.Accept = headers[key];
-                    else if (key.ToLower() == "content-length")
-                        // nothing
-                        continue;
-                    else
-                        request.Headers.Add(key, headers[key]);
-                }
-            }
-            onRequestDelegate?.Invoke(request);
+            var requestMessage = new HttpRequestMessage(GetHttpMethod(method), url);
 
-            DebugRequest(request);
+            foreach (string key in headers.Keys)
+                requestMessage.Headers.Add(key, headers[key]);
 
             try
             {
-                if (request.Method == "POST" | request.Method == "PUT" | request.Method == "PATCH")
-                {
-                    // write body as UTF-8 encoding
-                    UTF8Encoding encoding = new UTF8Encoding();
-                    byte[] bytes = encoding.GetBytes(body);
-
-                    // set content length
-                    request.ContentLength = bytes.Length;
-
-                    using (Stream requestStream = request.GetRequestStream())
-                        requestStream.Write(bytes, 0, bytes.Length);
-                }
-
-                using (var response = (HttpWebResponse)request.GetResponse())
-                {
-                    DebugResponse(response);
-
-                    if (response.StatusCode == HttpStatusCode.OK |
-                        response.StatusCode == HttpStatusCode.Accepted |
-                        response.StatusCode == HttpStatusCode.Created |
-                        response.StatusCode == HttpStatusCode.NoContent)
-                    {
-                        return ReadResponse(response.GetResponseStream());
-                    }
-                    else
-                    {
-                        throw new Exception();
-                    }
-                }
+                var response = await this.InnerHttpClient.SendAsync(requestMessage);
+                response.EnsureSuccessStatusCode();
             }
-            catch (WebException e)
+            catch (Exception)
             {
-                if (e.Status == WebExceptionStatus.ConnectFailure ||
-                    e.Status == WebExceptionStatus.ConnectionClosed ||
-                    e.Status == WebExceptionStatus.Timeout)
-                    throw e;
-
-                if (e.Status == WebExceptionStatus.ProtocolError) { 
-                    var text = ReadResponse(e.Response.GetResponseStream());
-                    throw new JsonClientException(text, (e.Response as HttpWebResponse).StatusCode, e);
-                }
-                throw e;
-            }
-            catch (Exception e)
-            {
-                throw e;
+                throw;
             }
         }
-
-        /// <summary></summary>
-        /// <param name="method"></param>
-        /// <param name="url"></param>
-        /// <param name="body"></param>
-        /// <param name="headers"></param>
-        /// <returns>string</returns>
-        private static string ExecuteRequest(string method, string url, string body, StringDictionary headers)
-        {
-            return ExecuteRequest(method, url, body, headers, null);
-        }
-        #endregion
-
-        #region === private statics ===
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="body"></param>
-        /// <param name="obj"></param>
-        private static void DebugSerialization(string body, object obj)
-        {
-            if (JsonClient.Debugger != null && body != null)
-                JsonClient.Debugger.OnSerialization(body, obj);
-        }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="request"></param>
-        private static void DebugRequest(WebRequest request)
-        {
-            if (JsonClient.Debugger != null && request != null)
-                JsonClient.Debugger.OnRequest(request);
-        }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="request"></param>
-        private static void DebugResponse(WebResponse response)
-        {
-            if (JsonClient.Debugger != null && response != null)
-                JsonClient.Debugger.OnResponse(response);
-        }
-
-        /// <summary>
-        /// Reads the response stream.
-        /// </summary>
-        /// <param name="s">Stream to read.</param>
+        /// <param name="value"></param>
         /// <returns></returns>
-        private static string ReadResponse(Stream s)
+        private static HttpMethod GetHttpMethod(HttpMethodEnum value)
         {
-            using (var reader = new StreamReader(s))
-            {
-                return reader.ReadToEnd();
-            }
-        }
+            if (value == HttpMethodEnum.Get)
+                return HttpMethod.Get;
+            if (value == HttpMethodEnum.Post)
+                return HttpMethod.Post;
+            if (value == HttpMethodEnum.Put)
+                return HttpMethod.Put;
+            if (value == HttpMethodEnum.Delete)
+                return HttpMethod.Delete;
+            if (value == HttpMethodEnum.Patch)
+                return new HttpMethod("PATCH");
 
+            throw new NotImplementedException();
+
+        }
         /// <summary>
         /// Returns common serialization settings.
         /// </summary>
         /// <returns></returns>
-        private static JsonSerializerSettings GetJsonSerializerSettings()
+        private JsonSerializerSettings GetJsonSerializerSettings()
         {
-            return new JsonSerializerSettings { 
+            return new JsonSerializerSettings
+            {
                 NullValueHandling = NullValueHandling.Ignore,
                 ReferenceLoopHandling = ReferenceLoopHandling.Ignore
             };
-        }
+        } 
         #endregion
     }
 }
